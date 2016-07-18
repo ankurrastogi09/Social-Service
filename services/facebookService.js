@@ -7,7 +7,30 @@ var debug = require("debug")("Facebook Service");
 /* Internal config files*/
 var config = require("../config").facebook;
 
+function createRequestOpts(options, cb)
+
 var facebookService = {
+	validatePost : function(options, cb){
+		var opts = {};
+		var error;
+		var validFlag = false;
+
+		//Todo add other post items as well.
+		["message","link"].forEach(function(key){
+			if(options[key]){
+				opts[key] = options[key];
+			}
+		});
+
+		if(Object.keys(opts) && Object.keys(opts).length) validFlag = true;
+
+		if(!validFlag){
+			error = new Error("Insufficient parameters");
+			error.status = 403;
+			return cb(error);
+		}
+	},
+
 	publishPost : function(options, cb){
 		
 		var opts = {};
@@ -31,7 +54,7 @@ var facebookService = {
 			return cb(error);
 		}
 
-		url += "access_token=" + config.access_token;
+		url += "access_token=" + config.pages.oyewiki.access_token;
 
 		Object.keys(opts).forEach(function(key){
 			url += "&" + key + "=" + opts[key];
