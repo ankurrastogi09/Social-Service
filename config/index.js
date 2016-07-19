@@ -1,5 +1,5 @@
 "use strict";
 
 module.exports = {
-	"facebook" : require('./facebook')
+	facebook : require('./facebook')
 };
