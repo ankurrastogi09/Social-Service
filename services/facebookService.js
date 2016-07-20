@@ -3,6 +3,8 @@
 /* Third Party Modules */
 var request = require("request");
 var debug = require("debug")("Facebook-Service");
+var async = require("async");
+var util = require("util");
 
 /* Internal config files*/
 var config = require("../config").facebook;
@@ -12,30 +14,64 @@ var facebookService = {
 		
 		var opts = {};
 		var reqOpts = {};
+		var post_data = [];
 		var error;
 		var validFlag = false;
-		var url = "https://graph.facebook.com/me/feed?";	
+		var url;
 
 		validateOptions();
 
-		createReqOpts();
+		createPostArray();
 
-		// console.log(reqOpts);
+		makePostRequests();
+		
+		function makePostRequests(){
+			async.eachSeries(post_data, sendSocialRequest, function(err, result){
+				cb(null, true);
+			});
+		}
 
-		// return cb(null,true);
+		function createPostArray(){
 
-		request.post(reqOpts, function(err, resp, body){
-			if(err || resp.statusCode !== 200){
-				error = err || new Error("Not able to publish post");
-				return cb(error);	
-			}
+			var pages = opts.pages || Object.keys(config.pages);
+
+			pages.forEach(function(page){
+				if(config.pages[page]){
+					var obj = {};
+					obj.access_token = config.pages[page].access_token
+					if(opts.message) obj.message = opts.message;
+					if(opts.link) obj.link = opts.link;
+					post_data.push(obj);
+				}
+			});
+		}
+
+		function sendSocialRequest(page_post_data, cb){
 			
-			cb(null, body);
-		});
+			url = "https://graph.facebook.com/me/feed?";
+
+			Object.keys(page_post_data).forEach(function(key){
+				url += key + "=" + page_post_data[key] + "&";
+			});
+
+			url = url.split("").splice(0, url.length - 1).join("");
+
+			request.post({url : url}, function(err, resp, body){
+				console.log(err, body);
+				if(err || resp.statusCode !== 200){
+					error = err || new Error("Not able to publish post");
+					util.log(error);
+					return cb(error);	
+				}
+				
+				cb(null, body);
+			});
+		}
+		
 
 		function validateOptions(){
 			//Todo add other post items as well.
-			["message","link"].forEach(function(key){
+			["message","link","pages"].forEach(function(key){
 				if(options[key]){
 					opts[key] = options[key];
 				}
@@ -50,20 +86,13 @@ var facebookService = {
 			}
 		}
 
-		function createReqOpts(){
-
-			url += "access_token=" + config.pages.oyewiki.access_token;
-
-			Object.keys(opts).forEach(function(key){
-				url += "&" + key + "=" + opts[key];
-			});
-
-			reqOpts = {
-				url : url
-			};
-		}
-
 	}
 };
 
 module.exports = facebookService;
+
+//So what this application will do.
+//We will pick all the pages from config.
+//Will check if options has any particular page than we will only consider that page other will all pages picked from config.
+//than we will create object of those pages with details like access_token, message and link for now.
+//Than by using asyn method we will call them all to auto post on each page.
