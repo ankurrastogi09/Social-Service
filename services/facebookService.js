@@ -2,14 +2,22 @@
 
 /* Third Party Modules */
 var request = require("request");
-var debug = require("debug")("Facebook-Service");
 var async = require("async");
 var util = require("util");
+var debug = require("debug")("Facebook-Service");
 
 /* Internal config files*/
 var config = require("../config").facebook;
 
 var facebookService = {
+	/*
+		publishPost Method posts the links or messages passed as input on all the pages.
+		variable options ==> {
+			link : "", //Webpage url link
+			"message" : "", //Text post message
+			"pages" : [] //Array of pages on which we want to post, leave it empty if we want to post on all pages
+		};
+	*/
 	publishPost : function(options, cb){
 		
 		var opts = {};
