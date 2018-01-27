@@ -1,4 +1,8 @@
 # Social-Service
-Social Service for auto post on social networks
 
-In Development phase right now.
+> :pray: This is an official Oyewiki Social-Service for auto post on social networks.
+
+# Overview
+Single service to auto post on multiple social network
+- [Facebook] 
+- [Twitter]
